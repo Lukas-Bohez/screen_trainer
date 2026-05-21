@@ -1,0 +1,1 @@
+enum CurtainState { locked, unlocking, pendingReveal, open, cooldown }

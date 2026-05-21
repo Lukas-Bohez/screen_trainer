@@ -1,0 +1,8 @@
+analyzer:
+  errors:
+    unused_import: warning
+    dead_code: warning
+    missing_return: error
+    unnecessary_this: warning
+  exclude:
+    - test/**

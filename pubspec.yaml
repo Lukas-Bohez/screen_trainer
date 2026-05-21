@@ -1,0 +1,52 @@
+name: screen_trainer
+description: ScreenTrainer is a local-first habit-enforcement app that turns screen time into earned time.
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.11.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: 6.0.5
+  shared_preferences: 2.5.4
+  flutter_local_notifications: 21.0.0
+  camera: ^0.11.1
+  fl_chart: ^1.2.0
+  local_auth: ^2.2.0
+  permission_handler: ^11.3.0
+  flutter_adaptive_scaffold: ^0.2.0
+  google_mlkit_pose_detection: ^0.14.1
+  google_mlkit_commons: ^0.11.1
+  web_socket_channel: ^3.0.0
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^5.2.0
+  wakelock_plus: ^1.2.0
+  confetti: ^0.7.0
+  sensors_plus: ^6.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "icon.png"
+  adaptive_icon_background: "#00ACC1"
+  adaptive_icon_foreground: "icon.png"
+  web:
+    generate: false
+  windows:
+    generate: true
+    image_path: "icon.png"
+    icon_size: 256
+  macos:
+    generate: true
+    image_path: "icon.png"
