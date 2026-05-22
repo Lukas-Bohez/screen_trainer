@@ -112,6 +112,7 @@ class MainActivity : FlutterActivity() {
 
 	companion object {
 		private const val OVERLAY_CHANNEL = "com.screentrainer/overlay"
+		private const val USAGE_CHANNEL = "com.screentrainer/usage"
 		private const val SCREEN_STATE_CHANNEL = "com.screentrainer/screen_state"
 	}
 }

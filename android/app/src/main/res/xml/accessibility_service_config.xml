@@ -5,4 +5,4 @@
     android:notificationTimeout="100"
     android:canRetrieveWindowContent="true"
     android:accessibilityFlags="flagReportViewIds"
-    android:description="ScreenTrainer Accessibility watcher to detect overlay tampering" />
+    android:description="@string/accessibility_service_description" />
