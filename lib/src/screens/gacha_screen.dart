@@ -29,11 +29,23 @@ class GachaScreen extends StatelessWidget {
                       spacing: 12,
                       children: [
                         FilledButton(
-                          onPressed: () => controller.pullSingle(GachaTrack.curtain),
+                          onPressed: () async {
+                            await showDialog<void>(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (ctx) => _GachaPullDialog(track: GachaTrack.curtain, controller: controller),
+                            );
+                          },
                           child: const Text('Pull curtain'),
                         ),
                         FilledButton.tonal(
-                          onPressed: () => controller.pullSingle(GachaTrack.theme),
+                          onPressed: () async {
+                            await showDialog<void>(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (ctx) => _GachaPullDialog(track: GachaTrack.theme, controller: controller),
+                            );
+                          },
                           child: const Text('Pull theme'),
                         ),
                         OutlinedButton(
@@ -68,6 +80,59 @@ class GachaScreen extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _GachaPullDialog extends StatefulWidget {
+  const _GachaPullDialog({required this.track, required this.controller});
+  final GachaTrack track;
+  final ScreenTrainerController controller;
+  @override
+  State<_GachaPullDialog> createState() => _GachaPullDialogState();
+}
+
+class _GachaPullDialogState extends State<_GachaPullDialog> {
+  Future<List<GachaItem>>? _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = widget.controller.gachaService.pullSingle(widget.track);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: FutureBuilder<List<GachaItem>>(
+          future: _future,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Column(mainAxisSize: MainAxisSize.min, children: const [SizedBox(height: 16), CircularProgressIndicator(), SizedBox(height: 12), Text('Spinning the wheel...')]);
+            }
+            if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
+              return Column(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.error_outline, size: 48, color: Colors.red), const SizedBox(height: 8), const Text('Not enough Rep Coins or an error occurred.'), const SizedBox(height: 12), FilledButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close'))]);
+            }
+            final item = snapshot.data!.first;
+            // Apply theme immediately for theme items to give live transition
+            if (item is ThemeItem) {
+              widget.controller.setActiveTheme(item);
+            }
+            return Column(mainAxisSize: MainAxisSize.min, children: [
+              const SizedBox(height: 12),
+              CircleAvatar(radius: 48, backgroundColor: item.color, child: Icon(item.isAnimated ? Icons.auto_awesome : Icons.image, size: 36, color: Colors.white)),
+              const SizedBox(height: 12),
+              Text(item.name, style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 8),
+              Text('Rarity: ${item.rarity.name}'),
+              const SizedBox(height: 16),
+              FilledButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close')),
+            ]);
+          },
+        ),
+      ),
     );
   }
 }
