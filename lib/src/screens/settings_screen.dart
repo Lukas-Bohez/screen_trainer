@@ -102,6 +102,22 @@ class SettingsScreen extends StatelessWidget {
                               onPressed: () => controller.removeProfile(profile.id),
                               child: const Text(Strings.removeProfile),
                             ),
+                            if (!profile.isChild) TextButton(
+                              onPressed: () async {
+                                final ctl = TextEditingController();
+                                final pin = await showDialog<String?>(context: context, builder: (ctx) {
+                                  return AlertDialog(
+                                    title: const Text('Set PIN for profile'),
+                                    content: TextField(controller: ctl, keyboardType: TextInputType.number, obscureText: true),
+                                    actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')), TextButton(onPressed: () => Navigator.of(ctx).pop(ctl.text), child: const Text('Save'))],
+                                  );
+                                });
+                                if (pin == null || pin.isEmpty) return;
+                                await controller.settingsRepository.setPinForProfile(profile.id, pin);
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PIN saved.')));
+                              },
+                              child: const Text('Set PIN'),
+                            ),
                           ],
                         ),
                       ),
