@@ -58,6 +58,15 @@ class CurtainScreen extends StatelessWidget {
                           if (profile.isChild) {
                             // Require a parent PIN: choose an adult profile then prompt for PIN
                             final adults = controller.profiles.where((p) => !p.isChild).toList();
+                            // Try remote confirm first if any companion connected
+                            final companionService = controller.companionService;
+                            if (await companionService.requestRemoteConfirm(profile.id, reason: 'Child requests a sick-day skip')) {
+                              // remote confirmed
+                              final applied = await controller.applySickDayOption(confirmed);
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(applied ? 'Sick day applied via companion.' : 'Could not apply sick day.')));
+                              return;
+                            }
+
                             if (adults.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No adult profiles configured.')));
                               return;

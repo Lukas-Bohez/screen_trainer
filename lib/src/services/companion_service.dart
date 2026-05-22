@@ -41,6 +41,8 @@ class CompanionService extends ChangeNotifier {
   final StreamController<ImuFrame> _mergedImuController = StreamController<ImuFrame>.broadcast();
   HttpServer? _server;
   WebSocketChannel? _channel;
+  final List<WebSocket> _sockets = <WebSocket>[];
+  final Map<String, Completer<bool>> _pendingConfirms = <String, Completer<bool>>{};
   Timer? _pingTimer;
   int _reconnectAttempts = 0;
   SessionConfig? _sessionConfig;
@@ -69,6 +71,7 @@ class CompanionService extends ChangeNotifier {
         return;
       }
       final socket = await WebSocketTransformer.upgrade(request);
+      _sockets.add(socket);
       connectedCompanions.add(DiscoveredDevice(
         name: 'Companion',
         host: request.connectionInfo?.remoteAddress.address ?? 'local',
@@ -78,12 +81,20 @@ class CompanionService extends ChangeNotifier {
       socket.listen((message) {
         try {
           final decoded = jsonDecode(message as String) as Map<String, Object?>;
-          if (decoded['type'] == 'IMU_FRAME') {
+          final type = decoded['type'] as String?;
+          if (type == 'IMU_FRAME') {
             _mergedImuController.add(ImuFrame.fromJson(decoded));
+          } else if (type == 'REMOTE_CONFIRM_RESPONSE') {
+            final requestId = decoded['requestId'] as String?;
+            final granted = decoded['granted'] as bool? ?? false;
+            if (requestId != null && _pendingConfirms.containsKey(requestId)) {
+              _pendingConfirms.remove(requestId)?.complete(granted);
+            }
           }
         } catch (_) {}
       }, onDone: () {
-        connectedCompanions.removeWhere((device) => device.port == _server!.port);
+        _sockets.remove(socket);
+        connectedCompanions.removeWhere((device) => device.host == request.connectionInfo?.remoteAddress.address);
         notifyListeners();
       });
     });
@@ -127,10 +138,36 @@ class CompanionService extends ChangeNotifier {
             targetReps: (decoded['targetReps'] as int?) ?? 10,
             sessionId: decoded['sessionId'] as String? ?? '',
           );
+        } else if (decoded['type'] == 'REMOTE_CONFIRM') {
+          // Auto-respond for now: accept the request and send response back
+          final requestId = decoded['requestId'] as String? ?? '';
+          _channel?.sink.add(jsonEncode(<String, Object?>{'type': 'REMOTE_CONFIRM_RESPONSE', 'requestId': requestId, 'granted': true}));
         }
       } catch (_) {}
     }, onDone: _scheduleReconnect, onError: (_) => _scheduleReconnect());
     notifyListeners();
+  }
+
+  /// Request remote confirmation from connected companions. Returns true if any companion grants.
+  Future<bool> requestRemoteConfirm(String profileId, {String reason = 'Confirm action'}) async {
+    if (_sockets.isEmpty) return false;
+    final requestId = DateTime.now().millisecondsSinceEpoch.toString();
+    final completer = Completer<bool>();
+    _pendingConfirms[requestId] = completer;
+    final payload = jsonEncode(<String, Object?>{'type': 'REMOTE_CONFIRM', 'requestId': requestId, 'profileId': profileId, 'reason': reason});
+    for (final s in List<WebSocket>.from(_sockets)) {
+      try {
+        s.add(payload);
+      } catch (_) {}
+    }
+    // Wait for response with timeout
+    try {
+      final granted = await completer.future.timeout(const Duration(seconds: 20));
+      return granted;
+    } catch (_) {
+      _pendingConfirms.remove(requestId);
+      return false;
+    }
   }
 
   void _scheduleReconnect() {
