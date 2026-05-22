@@ -43,6 +43,7 @@ class CompanionService extends ChangeNotifier {
   WebSocketChannel? _channel;
   final List<WebSocket> _sockets = <WebSocket>[];
   final Map<String, Completer<bool>> _pendingConfirms = <String, Completer<bool>>{};
+  final List<Map<String, Object?>> _pendingRequests = <Map<String, Object?>>[];
   Timer? _pingTimer;
   int _reconnectAttempts = 0;
   SessionConfig? _sessionConfig;
@@ -90,6 +91,11 @@ class CompanionService extends ChangeNotifier {
             if (requestId != null && _pendingConfirms.containsKey(requestId)) {
               _pendingConfirms.remove(requestId)?.complete(granted);
             }
+          } else if (decoded['type'] == 'REMOTE_CONFIRM') {
+            // Client received a remote confirm request — queue it for UI
+            final req = Map<String, Object?>.from(decoded);
+            _pendingRequests.add(req);
+            notifyListeners();
           }
         } catch (_) {}
       }, onDone: () {
@@ -114,8 +120,29 @@ class CompanionService extends ChangeNotifier {
     _server = null;
     _sessionConfig = null;
     connectedCompanions.clear();
+    _sockets.clear();
     notifyListeners();
   }
+
+  /// Companion-side: respond to a remote confirm request (client role)
+  Future<void> respondToRemoteConfirm(String requestId, bool granted) async {
+    final payload = jsonEncode(<String, Object?>{'type': 'REMOTE_CONFIRM_RESPONSE', 'requestId': requestId, 'granted': granted});
+    try {
+      if (_channel != null) {
+        _channel?.sink.add(payload);
+      }
+      for (final s in List<WebSocket>.from(_sockets)) {
+        try {
+          s.add(payload);
+        } catch (_) {}
+      }
+    } catch (_) {}
+    _pendingRequests.removeWhere((r) => r['requestId'] == requestId);
+    notifyListeners();
+  }
+
+  List<Map<String, Object?>> get pendingRequests => List<Map<String, Object?>>.unmodifiable(_pendingRequests);
+  
 
   Future<void> connectTo(DiscoveredDevice device) async {
     await _connect(Uri.parse('ws://${device.host}:${device.port}'));

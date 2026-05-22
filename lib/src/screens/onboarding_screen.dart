@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../state/screen_trainer_controller.dart';
+import '../utils/platform_utils.dart';
 import '../utils/strings.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -29,6 +30,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
     await controller.addProfile(profile);
     await controller.setActiveProfile(profile.id);
+    controller.selectTab(1);
+  }
+
+  Future<void> _startDemoProfile() async {
+    final controller = context.read<ScreenTrainerController>();
+    final profile = controller.settingsRepository.createProfileTemplate(
+      name: 'Demo profile',
+      isChild: false,
+    );
+    await controller.addProfile(profile);
+    await controller.setActiveProfile(profile.id);
+    controller.selectTab(1);
+  }
+
+  Future<void> _requestOverlayPermission() async {
+    final controller = context.read<ScreenTrainerController>();
+    await controller.overlayService.requestOverlayPermission();
   }
 
   @override
@@ -48,6 +66,43 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Text(Strings.onboardingTitle, style: Theme.of(context).textTheme.headlineMedium),
                   const SizedBox(height: 12),
                   Text(Strings.onboardingIntro),
+                  const SizedBox(height: 16),
+                  FutureBuilder<bool>(
+                    future: PlatformUtils.isAndroidTV(),
+                    builder: (context, snapshot) {
+                      final isTv = snapshot.data ?? false;
+                      return Card(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('First-time setup', style: Theme.of(context).textTheme.titleMedium),
+                              const SizedBox(height: 8),
+                              const Text('Create a profile, allow the curtain overlay, then test the challenge from the exercise tab.'),
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 12,
+                                runSpacing: 12,
+                                children: [
+                                  OutlinedButton(
+                                    onPressed: _requestOverlayPermission,
+                                    child: const Text('Allow overlay'),
+                                  ),
+                                  if (!isTv)
+                                    OutlinedButton(
+                                      onPressed: _startDemoProfile,
+                                      child: const Text('Start with demo profile'),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                   const SizedBox(height: 20),
                   TextField(
                     controller: _nameController,
@@ -66,6 +121,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   FilledButton(
                     onPressed: _createProfile,
                     child: const Text(Strings.createProfile),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: _startDemoProfile,
+                    child: const Text('Continue to the app with a demo profile'),
                   ),
                 ],
               ),

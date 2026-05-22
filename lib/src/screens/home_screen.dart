@@ -8,6 +8,7 @@ import '../utils/platform_utils.dart';
 import 'curtain_screen.dart';
 import 'exercise_screen.dart';
 import 'gacha_screen.dart';
+import 'companion_screen.dart';
 import 'onboarding_screen.dart';
 import 'settings_screen.dart';
 import 'stats_screen.dart';
@@ -20,13 +21,18 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<ScreenTrainerController, GachaService>(
       builder: (context, controller, gachaService, _) {
-        if (!controller.ready || controller.profiles.isEmpty) {
+        if (!controller.ready) {
+          return const _StartupLoadingScreen();
+        }
+
+        if (controller.profiles.isEmpty) {
           return const OnboardingScreen();
         }
 
         final pages = <Widget>[
           const CurtainScreen(),
           const ExerciseScreen(),
+          const CompanionScreen(),
           const GachaScreen(),
           const StatsScreen(),
           const SettingsScreen(),
@@ -35,6 +41,7 @@ class HomeScreen extends StatelessWidget {
         final destinations = <NavigationRailDestination>[
           const NavigationRailDestination(icon: Icon(Icons.roller_shades), label: Text('Curtain')),
           const NavigationRailDestination(icon: Icon(Icons.fitness_center), label: Text('Exercise')),
+          const NavigationRailDestination(icon: Icon(Icons.phone_iphone), label: Text('Companion')),
           const NavigationRailDestination(icon: Icon(Icons.card_giftcard), label: Text('Gacha')),
           const NavigationRailDestination(icon: Icon(Icons.bar_chart), label: Text('Stats')),
           const NavigationRailDestination(icon: Icon(Icons.settings), label: Text('Settings')),
@@ -127,6 +134,41 @@ class HomeScreen extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+class _StartupLoadingScreen extends StatelessWidget {
+  const _StartupLoadingScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Card(
+            margin: const EdgeInsets.all(24),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 20),
+                  Text('Preparing ScreenTrainer', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Loading profiles, theme, and services so you can continue.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
