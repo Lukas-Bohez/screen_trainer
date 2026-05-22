@@ -41,12 +41,13 @@ jobs:
           EOF
       - run: flutter build apk --release --split-per-abi
       - run: flutter build appbundle --release
+      - run: cp build/app/outputs/bundle/release/app-release.aab build/app/outputs/bundle/release/zaab.aab
       - uses: actions/upload-artifact@v4
         with:
           name: android-apks
           path: |
             build/app/outputs/flutter-apk/app-*-release.apk
-            build/app/outputs/bundle/release/app-release.aab
+            build/app/outputs/bundle/release/zaab.aab
 
   build-windows:
     runs-on: windows-latest
@@ -98,7 +99,7 @@ jobs:
       - shell: bash
         run: |
           cd build/macos/Build/Products/Release
-          zip -r "$GITHUB_WORKSPACE/ScreenTrainer-macOS.zip" ScreenTrainer.app
+          zip -r "$GITHUB_WORKSPACE/ScreenTrainer-macOS.zip" screen_trainer.app
       - uses: actions/upload-artifact@v4
         with:
           name: macos-build
