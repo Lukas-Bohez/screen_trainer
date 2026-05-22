@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../state/screen_trainer_controller.dart';
 import '../utils/strings.dart';
 import '../widgets/curtain_widget.dart';
+import '../services/sick_day_service.dart';
 
 class CurtainScreen extends StatelessWidget {
   const CurtainScreen({super.key});
@@ -40,6 +41,28 @@ class CurtainScreen extends StatelessWidget {
                       FilledButton(onPressed: controller.startChallenge, child: const Text(Strings.startChallenge)),
                       OutlinedButton(onPressed: controller.openScreen, child: const Text(Strings.openScreen)),
                       TextButton(onPressed: controller.lockScreen, child: const Text(Strings.lockScreen)),
+                      // Subtle Sick Day path — one extra tap from main actions
+                      TextButton(
+                        onPressed: () async {
+                          final profile = controller.activeProfile;
+                          if (profile == null) return;
+                          final confirmed = await showDialog<SickDayOption?>(
+                            context: context,
+                            builder: (ctx) => _SickDayDialog(profile: profile),
+                          );
+                          if (confirmed == null) return;
+                          // Authenticate before applying
+                          final sickService = SickDayService();
+                          final ok = await sickService.authenticateForSkip();
+                          if (!ok) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication failed.')));
+                            return;
+                          }
+                          final applied = await controller.applySickDayOption(confirmed);
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(applied ? 'Sick day applied.' : 'Could not apply sick day.')));
+                        },
+                        child: const Text('Not today'),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -50,6 +73,36 @@ class CurtainScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _SickDayDialog extends StatelessWidget {
+  const _SickDayDialog({required this.profile});
+
+  final profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final choices = <Map<String, Object?>>[
+      {'label': 'Skip this session (50 Rep Coins)', 'option': SickDayOption.skipSession},
+      {'label': 'Reduce target reps by 50% (10 Rep Coins)', 'option': SickDayOption.reduceTargetReps},
+      {'label': 'Use streak freeze (5 Fabric Scraps)', 'option': SickDayOption.streakFreeze},
+    ];
+    return AlertDialog(
+      title: const Text('Not today'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(profile.isChild ? 'Ask a grown-up to confirm.' : 'Confirm your choice with device authentication.'),
+          const SizedBox(height: 12),
+          ...choices.map((c) => ListTile(
+                title: Text(c['label'] as String),
+                onTap: () => Navigator.of(context).pop(c['option'] as SickDayOption),
+              ))
+        ],
+      ),
+      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel'))],
     );
   }
 }

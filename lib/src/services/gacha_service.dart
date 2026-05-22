@@ -162,4 +162,12 @@ class GachaService extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  /// Consume fabric scraps; returns true if enough scraps were available.
+  bool consumeFabricScraps(int amount) {
+    if (_fabricScraps < amount) return false;
+    _fabricScraps -= amount;
+    notifyListeners();
+    return true;
+  }
 }

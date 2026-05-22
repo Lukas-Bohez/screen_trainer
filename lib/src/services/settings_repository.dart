@@ -13,6 +13,7 @@ class SettingsRepository extends ChangeNotifier {
   static const _profilesKey = 'profiles';
   static const _activeProfileIdKey = 'active_profile_id';
   static const _scheduleKey = 'schedule_windows';
+  static const _streakFreezePrefix = 'streak_freeze_';
 
   SharedPreferences? _prefs;
 
@@ -43,6 +44,22 @@ class SettingsRepository extends ChangeNotifier {
       ..addAll(_decodeScheduleWindows(prefs.getStringList(_scheduleKey) ?? const <String>[]));
 
     notifyListeners();
+  }
+
+  Future<void> setStreakFreeze(String profileId, DateTime until) async {
+    await _prefs?.setInt('$_streakFreezePrefix$profileId', until.millisecondsSinceEpoch);
+    notifyListeners();
+  }
+
+  bool isStreakFrozen(String profileId) {
+    final expiry = _prefs?.getInt('$_streakFreezePrefix$profileId');
+    if (expiry == null) return false;
+    final until = DateTime.fromMillisecondsSinceEpoch(expiry);
+    if (DateTime.now().isAfter(until)) {
+      _prefs?.remove('$_streakFreezePrefix$profileId');
+      return false;
+    }
+    return true;
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {

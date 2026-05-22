@@ -16,6 +16,7 @@ import '../services/overlay_service.dart';
 import '../services/notification_service.dart';
 import '../services/review_service.dart';
 import '../services/settings_repository.dart';
+import '../services/sick_day_service.dart';
 import '../state/curtain_state.dart';
 import '../theme/app_theme.dart' show ThemeService;
 
@@ -196,6 +197,44 @@ class ScreenTrainerController extends ChangeNotifier {
     await ReviewService.maybePromptReview();
     if (await overlayService.isScreenOn()) {
       await openScreen();
+    }
+  }
+
+  /// Apply a sick-day option after successful authentication.
+  Future<bool> applySickDayOption(SickDayOption option) async {
+    final profile = activeProfile;
+    if (profile == null) return false;
+    switch (option) {
+      case SickDayOption.skipSession:
+        // Cost: 50 Rep Coins
+        final ok = gachaService.spendCoins(50);
+        if (ok) {
+          _statusMessage = 'Session skipped using 50 Rep Coins.';
+          notifyListeners();
+          await lockScreen();
+          return true;
+        }
+        _statusMessage = 'Not enough Rep Coins to skip.';
+        notifyListeners();
+        return false;
+      case SickDayOption.reduceTargetReps:
+        final reduced = (profile.challengeConfig.targetReps / 2).ceil();
+        final updated = profile.copyWith(challengeConfig: profile.challengeConfig.copyWith(targetReps: reduced));
+        await settingsRepository.upsertProfile(updated);
+        _statusMessage = 'Target reps reduced to $reduced for this profile.';
+        notifyListeners();
+        return true;
+      case SickDayOption.streakFreeze:
+        // Consume 5 fabric scraps to freeze streak for 24 hours
+        if (gachaService.consumeFabricScraps(5)) {
+          await settingsRepository.setStreakFreeze(profile.id, DateTime.now().add(const Duration(hours: 24)));
+          _statusMessage = 'Streak frozen for 24 hours.';
+          notifyListeners();
+          return true;
+        }
+        _statusMessage = 'Not enough Fabric Scraps to freeze streak.';
+        notifyListeners();
+        return false;
     }
   }
 
