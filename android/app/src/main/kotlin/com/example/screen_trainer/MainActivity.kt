@@ -44,6 +44,21 @@ class MainActivity : FlutterActivity() {
 			}
 		}
 
+		// Usage stats channel
+		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, USAGE_CHANNEL).setMethodCallHandler { call, result ->
+			when (call.method) {
+				"getTodayUsageMs" -> {
+					val packageName = call.argument<String>("packageName") ?: packageName
+					val ms = UsageStatsHelper.getTodayUsageMs(this, packageName)
+					result.success(ms)
+				}
+				"hasUsagePermission" -> {
+					result.success(UsageStatsHelper.hasUsagePermission(this))
+				}
+				else -> result.notImplemented()
+			}
+		}
+
 		EventChannel(flutterEngine.dartExecutor.binaryMessenger, SCREEN_STATE_CHANNEL).setStreamHandler(object : EventChannel.StreamHandler {
 			override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
 				screenStateSink = events

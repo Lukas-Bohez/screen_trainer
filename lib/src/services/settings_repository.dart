@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,6 +15,7 @@ class SettingsRepository extends ChangeNotifier {
   static const _activeProfileIdKey = 'active_profile_id';
   static const _scheduleKey = 'schedule_windows';
   static const _streakFreezePrefix = 'streak_freeze_';
+  static const _pinPrefix = 'pin_hash_';
 
   SharedPreferences? _prefs;
 
@@ -48,6 +50,26 @@ class SettingsRepository extends ChangeNotifier {
 
   Future<void> setStreakFreeze(String profileId, DateTime until) async {
     await _prefs?.setInt('$_streakFreezePrefix$profileId', until.millisecondsSinceEpoch);
+    notifyListeners();
+  }
+
+  Future<void> setPinForProfile(String profileId, String pin) async {
+    final bytes = utf8.encode(pin);
+    final digest = sha256.convert(bytes).toString();
+    await _prefs?.setString('$_pinPrefix$profileId', digest);
+    notifyListeners();
+  }
+
+  bool verifyPin(String profileId, String pin) {
+    final stored = _prefs?.getString('$_pinPrefix$profileId');
+    if (stored == null) return false;
+    final bytes = utf8.encode(pin);
+    final digest = sha256.convert(bytes).toString();
+    return stored == digest;
+  }
+
+  Future<void> removePin(String profileId) async {
+    await _prefs?.remove('$_pinPrefix$profileId');
     notifyListeners();
   }
 
