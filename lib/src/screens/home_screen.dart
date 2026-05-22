@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../services/gacha_service.dart';
 import '../state/screen_trainer_controller.dart';
@@ -42,9 +43,20 @@ class HomeScreen extends StatelessWidget {
           builder: (context, constraints) {
             final narrow = constraints.maxWidth < 760;
             final selectedIndex = controller.currentTab.clamp(0, pages.length - 1);
+            final shareMessage =
+                'I am using ScreenTrainer to earn my screen time. Try it here: https://github.com/Lukas-Bohez/screen_trainer';
             if (narrow) {
               return Scaffold(
-                appBar: AppBar(title: const Text('ScreenTrainer')),
+                appBar: AppBar(
+                  title: const Text('ScreenTrainer'),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.share),
+                      tooltip: 'Share',
+                      onPressed: () => Share.share(shareMessage, subject: 'ScreenTrainer'),
+                    ),
+                  ],
+                ),
                 body: IndexedStack(index: selectedIndex, children: pages),
                 bottomNavigationBar: NavigationBar(
                   selectedIndex: selectedIndex,
@@ -80,6 +92,11 @@ class HomeScreen extends StatelessWidget {
                                 Text('Coins ${gachaService.repCoins}'),
                               ],
                             ),
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.share),
+                            tooltip: 'Share ScreenTrainer',
+                            onPressed: () => Share.share(shareMessage, subject: 'ScreenTrainer'),
                           ),
                           destinations: destinations,
                         );

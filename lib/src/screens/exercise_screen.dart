@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../state/screen_trainer_controller.dart';
 import '../widgets/exercise_card.dart';
@@ -17,6 +18,23 @@ class ExerciseScreen extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.share),
+                title: const Text('Share ScreenTrainer'),
+                subtitle: Text(
+                  'Tell a friend how you got to ${controller.completedReps}/${controller.targetReps} reps.',
+                ),
+                onTap: () {
+                  Share.share(
+                    'I just used ScreenTrainer to earn screen time and hit ${controller.completedReps}/${controller.targetReps} reps.\n'
+                    'Try it: https://github.com/Lukas-Bohez/screen_trainer',
+                    subject: 'ScreenTrainer',
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
             RepCounterWidget(
               completed: controller.completedReps,
               target: controller.targetReps,

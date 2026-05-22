@@ -14,6 +14,7 @@ import '../services/gacha_service.dart';
 import '../services/log_service.dart';
 import '../services/overlay_service.dart';
 import '../services/notification_service.dart';
+import '../services/review_service.dart';
 import '../services/settings_repository.dart';
 import '../state/curtain_state.dart';
 import '../theme/app_theme.dart' show ThemeService;
@@ -192,6 +193,7 @@ class ScreenTrainerController extends ChangeNotifier {
       'ScreenTrainer',
       'Challenge complete. Open the screen to collect your reward.',
     );
+    await ReviewService.maybePromptReview();
     if (await overlayService.isScreenOn()) {
       await openScreen();
     }
@@ -230,6 +232,7 @@ class ScreenTrainerController extends ChangeNotifier {
     }
     _statusMessage = 'Pulled ${item.name}.';
     notifyListeners();
+    await ReviewService.maybePromptReview();
   }
 
   Future<void> pullTen(GachaTrack track) async {
@@ -241,6 +244,7 @@ class ScreenTrainerController extends ChangeNotifier {
     }
     _statusMessage = 'Pulled ${items.length} items.';
     notifyListeners();
+    await ReviewService.maybePromptReview();
   }
 
   void _handleRep(int count) {

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../models/challenge_config.dart';
 import '../models/schedule_window.dart';
+import '../services/review_service.dart';
 import '../state/screen_trainer_controller.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -141,13 +143,33 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Card(
-              child: ListTile(
-                title: const Text('Challenge configuration'),
-                subtitle: Text('Default target: ${ChallengeConfig.defaults.targetReps} reps'),
-                trailing: IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.edit),
-                ),
+              child: Column(
+                children: [
+                  ListTile(
+                    title: const Text('Challenge configuration'),
+                    subtitle: Text('Default target: ${ChallengeConfig.defaults.targetReps} reps'),
+                    trailing: IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.edit),
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.star_rounded, color: Colors.amber),
+                    title: const Text('Rate ScreenTrainer'),
+                    subtitle: const Text('Enjoying the app? Leave a review.'),
+                    onTap: () => ReviewService.openStoreListing(),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.ios_share),
+                    title: const Text('Share ScreenTrainer'),
+                    subtitle: const Text('Send the app to a friend.'),
+                    onTap: () => Share.share(
+                      'ScreenTrainer turns screen time into earned time. Try it: https://github.com/Lukas-Bohez/screen_trainer',
+                      subject: 'ScreenTrainer',
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
