@@ -1,0 +1,2 @@
+ASSET_PENDING: replace with production app icon (assets/icons/app_icon.jpg)
+// This placeholder prevents missing-asset errors during local tooling and CI.

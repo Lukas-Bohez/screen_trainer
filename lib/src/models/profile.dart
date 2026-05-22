@@ -72,7 +72,7 @@ class Profile {
   static Profile createDefault() {
     return Profile(
       id: 'default',
-      name: 'Configurator',
+      name: 'Main profile',
       challengeConfig: ChallengeConfig.defaults,
       isChild: false,
       streak: 0,

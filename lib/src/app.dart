@@ -69,6 +69,23 @@ class _AppView extends StatelessWidget {
           themeMode: themeService.themeMode,
           theme: themeService.buildTheme(Brightness.light),
           darkTheme: themeService.buildTheme(Brightness.dark),
+          builder: (context, child) {
+            final colors = Theme.of(context).colorScheme;
+            return DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color.alphaBlend(colors.secondary.withValues(alpha: 0.18), colors.surface),
+                    Color.alphaBlend(colors.primary.withValues(alpha: 0.10), colors.surface),
+                    Color.alphaBlend(colors.tertiary.withValues(alpha: 0.08), colors.surfaceContainerLow),
+                  ],
+                ),
+              ),
+              child: child,
+            );
+          },
           home: const HomeScreen(),
         );
       },

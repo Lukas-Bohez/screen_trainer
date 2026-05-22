@@ -6,6 +6,7 @@ import '../models/challenge_config.dart';
 import '../models/schedule_window.dart';
 import '../services/review_service.dart';
 import '../state/screen_trainer_controller.dart';
+import '../utils/strings.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -45,19 +46,19 @@ class SettingsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Theme mode', style: Theme.of(context).textTheme.titleLarge),
+                    Text(Strings.themeModeTitle, style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 12),
                     SegmentedButton<ThemeMode>(
                       segments: const [
-                        ButtonSegment(value: ThemeMode.system, label: Text('System')),
-                        ButtonSegment(value: ThemeMode.light, label: Text('Light')),
-                        ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
+                        ButtonSegment(value: ThemeMode.system, label: Text(Strings.themeModeSystem)),
+                        ButtonSegment(value: ThemeMode.light, label: Text(Strings.themeModeLight)),
+                        ButtonSegment(value: ThemeMode.dark, label: Text(Strings.themeModeDark)),
                       ],
                       selected: <ThemeMode>{controller.themeMode},
                       onSelectionChanged: (selected) => controller.setThemeMode(selected.first),
                     ),
                     const SizedBox(height: 16),
-                    Text('Cooldown: ${controller.cooldownMinutes} minutes'),
+                    Text('${Strings.cooldownTitle}: ${controller.cooldownMinutes} minutes'),
                     Slider(
                       value: controller.cooldownMinutes.toDouble(),
                       min: 5,
@@ -80,8 +81,8 @@ class SettingsScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Profiles', style: Theme.of(context).textTheme.titleLarge),
-                        FilledButton.tonal(onPressed: () => _addProfile(context), child: const Text('Add profile')),
+                        Text(Strings.profilesTitle, style: Theme.of(context).textTheme.titleLarge),
+                        FilledButton.tonal(onPressed: () => _addProfile(context), child: const Text(Strings.addProfile)),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -95,11 +96,11 @@ class SettingsScreen extends StatelessWidget {
                           children: [
                             TextButton(
                               onPressed: () => controller.setActiveProfile(profile.id),
-                              child: const Text('Use'),
+                              child: const Text(Strings.useProfile),
                             ),
                             TextButton(
                               onPressed: () => controller.removeProfile(profile.id),
-                              child: const Text('Remove'),
+                              child: const Text(Strings.removeProfile),
                             ),
                           ],
                         ),
@@ -119,8 +120,8 @@ class SettingsScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Schedule windows', style: Theme.of(context).textTheme.titleLarge),
-                        FilledButton.tonal(onPressed: () => _addSchedule(context), child: const Text('Add window')),
+                        Text(Strings.schedulesTitle, style: Theme.of(context).textTheme.titleLarge),
+                        FilledButton.tonal(onPressed: () => _addSchedule(context), child: const Text(Strings.addWindow)),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -133,7 +134,7 @@ class SettingsScreen extends StatelessWidget {
                         ),
                         trailing: TextButton(
                           onPressed: () => controller.deleteScheduleWindow(entry.key),
-                          child: const Text('Delete'),
+                          child: const Text(Strings.deleteWindow),
                         ),
                       ),
                     ),
@@ -146,7 +147,7 @@ class SettingsScreen extends StatelessWidget {
               child: Column(
                 children: [
                   ListTile(
-                    title: const Text('Challenge configuration'),
+                    title: const Text(Strings.challengeConfigTitle),
                     subtitle: Text('Default target: ${ChallengeConfig.defaults.targetReps} reps'),
                     trailing: IconButton(
                       onPressed: () {},
@@ -156,14 +157,14 @@ class SettingsScreen extends StatelessWidget {
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.star_rounded, color: Colors.amber),
-                    title: const Text('Rate ScreenTrainer'),
-                    subtitle: const Text('Enjoying the app? Leave a review.'),
+                    title: const Text(Strings.rateAppTitle),
+                    subtitle: const Text(Strings.rateAppSubtitle),
                     onTap: () => ReviewService.openStoreListing(),
                   ),
                   ListTile(
                     leading: const Icon(Icons.ios_share),
-                    title: const Text('Share ScreenTrainer'),
-                    subtitle: const Text('Send the app to a friend.'),
+                    title: const Text(Strings.shareAppTitle),
+                    subtitle: const Text(Strings.shareAppSubtitle),
                     onTap: () => Share.share(
                       'ScreenTrainer turns screen time into earned time. Try it: https://github.com/Lukas-Bohez/screen_trainer',
                       subject: 'ScreenTrainer',

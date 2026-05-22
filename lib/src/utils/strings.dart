@@ -2,6 +2,7 @@ class Strings {
   static const appName = 'ScreenTrainer';
   static const curtainHeadline = 'Your screen is behind a curtain.';
   static const curtainSubhead = 'Do the work, then open it.';
+  static const appTagline = 'Earn screen time by moving first.';
   static const startChallenge = 'Start Challenge';
   static const openScreen = 'Open Screen';
   static const lockScreen = 'Lock Screen';
@@ -9,4 +10,31 @@ class Strings {
   static const pullOne = 'Pull 1';
   static const pullTen = 'Pull 10';
   static const onboardingTitle = 'Set up ScreenTrainer';
+  static const onboardingIntro =
+      'Create the first profile and test the full lock-to-unlock loop.';
+  static const profileNameLabel = 'Profile name';
+  static const profileNameHint = 'For example: Main profile, Kid 1, or Teen';
+  static const adultProfileLabel = 'Adult profile';
+  static const childProfileLabel = 'Child profile';
+  static const childProfileSubtitle = 'Use this when a grown-up manages the settings.';
+  static const createProfile = 'Create profile';
+  static const themeModeTitle = 'App appearance';
+  static const themeModeSystem = 'System';
+  static const themeModeLight = 'Light';
+  static const themeModeDark = 'Dark';
+  static const cooldownTitle = 'Cooldown';
+  static const profilesTitle = 'Profiles';
+  static const addProfile = 'Add profile';
+  static const useProfile = 'Use';
+  static const removeProfile = 'Remove';
+  static const schedulesTitle = 'Schedule windows';
+  static const addWindow = 'Add window';
+  static const deleteWindow = 'Delete';
+  static const challengeConfigTitle = 'Challenge settings';
+  static const rateAppTitle = 'Rate ScreenTrainer';
+  static const rateAppSubtitle = 'If you like the app, leave a review.';
+  static const shareAppTitle = 'Share ScreenTrainer';
+  static const shareAppSubtitle = 'Send it to a friend.';
+  static const childManagedByAdult = 'A grown-up manages this profile.';
+  static const adultSkipPath = 'Adults can skip with a protected confirmation.';
 }

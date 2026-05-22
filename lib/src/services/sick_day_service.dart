@@ -5,7 +5,7 @@ class SickDayService {
 
   String explanation(Profile profile) {
     if (profile.isChild) {
-      return 'This profile is managed by a configurator and uses a more deliberate skip path.';
+      return 'A grown-up manages this profile, so skipping takes an extra confirmation.';
     }
     return 'Adult profiles can use a protected skip path after confirming the choice.';
   }

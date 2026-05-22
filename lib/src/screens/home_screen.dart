@@ -11,6 +11,7 @@ import 'gacha_screen.dart';
 import 'onboarding_screen.dart';
 import 'settings_screen.dart';
 import 'stats_screen.dart';
+import '../utils/strings.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -48,11 +49,23 @@ class HomeScreen extends StatelessWidget {
             if (narrow) {
               return Scaffold(
                 appBar: AppBar(
-                  title: const Text('ScreenTrainer'),
+                  title: const Text(Strings.appName),
+                  flexibleSpace: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
+                          Colors.transparent,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                  ),
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.share),
-                      tooltip: 'Share',
+                      tooltip: Strings.shareAppTitle,
                       onPressed: () => Share.share(shareMessage, subject: 'ScreenTrainer'),
                     ),
                   ],
@@ -87,7 +100,10 @@ class HomeScreen extends StatelessWidget {
                             padding: const EdgeInsets.all(16),
                             child: Column(
                               children: [
-                                const CircleAvatar(child: Icon(Icons.sports_gymnastics)),
+                                CircleAvatar(
+                                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                                  child: Icon(Icons.sports_gymnastics, color: Theme.of(context).colorScheme.primary),
+                                ),
                                 const SizedBox(height: 8),
                                 Text('Coins ${gachaService.repCoins}'),
                               ],

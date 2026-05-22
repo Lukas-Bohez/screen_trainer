@@ -37,18 +37,23 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  assets:
+    - assets/animations/gacha_pull.json
+    - assets/animations/curtain_open.json
+    - assets/icons/app_icon.jpg
+
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "icon.png"
+  image_path: "assets/icons/app_icon.jpg"
   adaptive_icon_background: "#00ACC1"
-  adaptive_icon_foreground: "icon.png"
+  adaptive_icon_foreground: "assets/icons/app_icon.jpg"
   web:
     generate: false
   windows:
     generate: true
-    image_path: "icon.png"
+    image_path: "assets/icons/app_icon.jpg"
     icon_size: 256
   macos:
     generate: true
-    image_path: "icon.png"
+    image_path: "assets/icons/app_icon.jpg"

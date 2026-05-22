@@ -12,7 +12,7 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final TextEditingController _nameController = TextEditingController(text: 'Configurator');
+  final TextEditingController _nameController = TextEditingController(text: 'Main profile');
   bool _isChild = false;
 
   @override
@@ -24,7 +24,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _createProfile() async {
     final controller = context.read<ScreenTrainerController>();
     final profile = controller.settingsRepository.createProfileTemplate(
-      name: _nameController.text.trim().isEmpty ? 'Configurator' : _nameController.text.trim(),
+      name: _nameController.text.trim().isEmpty ? 'Main profile' : _nameController.text.trim(),
       isChild: _isChild,
     );
     await controller.addProfile(profile);
@@ -47,22 +47,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   Text(Strings.onboardingTitle, style: Theme.of(context).textTheme.headlineMedium),
                   const SizedBox(height: 12),
-                  const Text('Create the first profile, then use the curtain and challenge screens to test the loop end to end.'),
+                  Text(Strings.onboardingIntro),
                   const SizedBox(height: 20),
                   TextField(
                     controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'Profile name'),
+                    decoration: const InputDecoration(
+                      labelText: Strings.profileNameLabel,
+                      hintText: Strings.profileNameHint,
+                    ),
                   ),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     value: _isChild,
                     onChanged: (value) => setState(() => _isChild = value),
-                    title: const Text('Child profile'),
-                    subtitle: const Text('Use this when the profile is managed by a configurator.'),
+                    title: Text(_isChild ? Strings.childProfileLabel : Strings.adultProfileLabel),
+                    subtitle: Text(_isChild ? Strings.childProfileSubtitle : Strings.adultSkipPath),
                   ),
                   FilledButton(
                     onPressed: _createProfile,
-                    child: const Text('Create profile'),
+                    child: const Text(Strings.createProfile),
                   ),
                 ],
               ),
