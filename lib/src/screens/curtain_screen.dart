@@ -5,6 +5,7 @@ import '../state/screen_trainer_controller.dart';
 import '../utils/strings.dart';
 import '../widgets/curtain_widget.dart';
 import '../services/sick_day_service.dart';
+import '../models/profile.dart';
 
 class CurtainScreen extends StatelessWidget {
   const CurtainScreen({super.key});
@@ -52,8 +53,28 @@ class CurtainScreen extends StatelessWidget {
                           );
                           if (confirmed == null) return;
                           // Authenticate before applying
+                          bool ok = false;
                           final sickService = SickDayService();
-                          final ok = await sickService.authenticateForSkip();
+                          if (profile.isChild) {
+                            // Require a parent PIN: choose an adult profile then prompt for PIN
+                            final adults = controller.profiles.where((p) => !p.isChild).toList();
+                            if (adults.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No adult profiles configured.')));
+                              return;
+                            }
+                            final selected = await showDialog<Profile?>(context: context, builder: (ctx) {
+                              return SimpleDialog(title: const Text('Select parent to confirm'), children: adults.map((p) => SimpleDialogOption(onPressed: () => Navigator.of(ctx).pop(p), child: Text(p.name))).toList());
+                            });
+                            if (selected == null) return;
+                            final pin = await showDialog<String?>(context: context, builder: (ctx) {
+                              final ctl = TextEditingController();
+                              return AlertDialog(title: const Text('Enter PIN'), content: TextField(controller: ctl, keyboardType: TextInputType.number, obscureText: true), actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')), TextButton(onPressed: () => Navigator.of(ctx).pop(ctl.text), child: const Text('OK'))]);
+                            });
+                            if (pin == null) return;
+                            ok = controller.settingsRepository.verifyPin(selected.id, pin);
+                          } else {
+                            ok = await sickService.authenticateForSkip();
+                          }
                           if (!ok) {
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication failed.')));
                             return;
