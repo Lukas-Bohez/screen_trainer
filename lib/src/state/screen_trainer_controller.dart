@@ -47,6 +47,7 @@ class ScreenTrainerController extends ChangeNotifier {
   int _currentTab = 0;
   int _completedReps = 0;
   bool _ready = false;
+  bool _initInProgress = false;
   Timer? _cooldownTimer;
   StreamSubscription<int>? _repSubscription;
   StreamSubscription<OverlayScreenState>? _screenStateSubscription;
@@ -67,26 +68,64 @@ class ScreenTrainerController extends ChangeNotifier {
   String? get exerciseStatus => exerciseService.statusMessage;
 
   Future<void> init() async {
-    await settingsRepository.load();
-    await notificationService.initialize();
-    themeService.setThemeMode(settingsRepository.themeMode);
-    if (gachaService.activeTheme != null) {
-      themeService.setActiveTheme(gachaService.activeTheme);
-    }
-    _ready = true;
-    if (settingsRepository.activeProfile == null && settingsRepository.profiles.isNotEmpty) {
-      await settingsRepository.setActiveProfileId(settingsRepository.profiles.first.id);
-    }
-    if (settingsRepository.profiles.isEmpty) {
-      _statusMessage = 'Create a profile to begin.';
-    }
-    await _screenStateSubscription?.cancel();
-    _screenStateSubscription = overlayService.screenStateStream.listen((state) {
-      if (state == OverlayScreenState.screenOn && _curtainState == CurtainState.pendingReveal) {
-        unawaited(openScreen());
-      }
-    });
+    if (_initInProgress) return;
+    _initInProgress = true;
+    _statusMessage = 'Preparing ScreenTrainer...';
     notifyListeners();
+
+    try {
+      await _runInitStep('settings.load', settingsRepository.load);
+      await _runInitStep('notification.initialize', notificationService.initialize, softFail: true);
+
+      themeService.setThemeMode(settingsRepository.themeMode);
+      if (gachaService.activeTheme != null) {
+        themeService.setActiveTheme(gachaService.activeTheme);
+      }
+
+      if (settingsRepository.activeProfile == null && settingsRepository.profiles.isNotEmpty) {
+        await _runInitStep(
+          'settings.setActiveProfileId',
+          () => settingsRepository.setActiveProfileId(settingsRepository.profiles.first.id),
+          softFail: true,
+        );
+      }
+
+      if (settingsRepository.profiles.isEmpty) {
+        _statusMessage = 'Create a profile to begin.';
+      } else {
+        _statusMessage = null;
+      }
+
+      await _screenStateSubscription?.cancel();
+      _screenStateSubscription = overlayService.screenStateStream.listen((state) {
+        if (state == OverlayScreenState.screenOn && _curtainState == CurtainState.pendingReveal) {
+          unawaited(openScreen());
+        }
+      });
+      _ready = true;
+    } catch (error) {
+      logService.debug('Startup initialization failed: $error');
+      _statusMessage =
+          'Startup took too long. You can retry now or continue with onboarding.';
+      _ready = true;
+    } finally {
+      _initInProgress = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _runInitStep(
+    String label,
+    Future<void> Function() action, {
+    Duration timeout = const Duration(seconds: 8),
+    bool softFail = false,
+  }) async {
+    try {
+      await action().timeout(timeout);
+    } catch (error) {
+      logService.debug('Init step failed: $label -> $error');
+      if (!softFail) rethrow;
+    }
   }
 
   void selectTab(int index) {

@@ -22,7 +22,10 @@ class HomeScreen extends StatelessWidget {
     return Consumer2<ScreenTrainerController, GachaService>(
       builder: (context, controller, gachaService, _) {
         if (!controller.ready) {
-          return const _StartupLoadingScreen();
+          return _StartupLoadingScreen(
+            message: controller.statusMessage,
+            onRetry: controller.init,
+          );
         }
 
         if (controller.profiles.isEmpty) {
@@ -84,6 +87,7 @@ class HomeScreen extends StatelessWidget {
                   destinations: const [
                     NavigationDestination(icon: Icon(Icons.roller_shades), label: 'Curtain'),
                     NavigationDestination(icon: Icon(Icons.fitness_center), label: 'Exercise'),
+                    NavigationDestination(icon: Icon(Icons.phone_iphone), label: 'Companion'),
                     NavigationDestination(icon: Icon(Icons.card_giftcard), label: 'Gacha'),
                     NavigationDestination(icon: Icon(Icons.bar_chart), label: 'Stats'),
                     NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
@@ -139,7 +143,13 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _StartupLoadingScreen extends StatelessWidget {
-  const _StartupLoadingScreen();
+  const _StartupLoadingScreen({
+    this.message,
+    required this.onRetry,
+  });
+
+  final String? message;
+  final Future<void> Function() onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -159,9 +169,15 @@ class _StartupLoadingScreen extends StatelessWidget {
                   Text('Preparing ScreenTrainer', style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 8),
                   Text(
-                    'Loading profiles, theme, and services so you can continue.',
+                    message ?? 'Loading profiles, theme, and services so you can continue.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry startup'),
                   ),
                 ],
               ),
