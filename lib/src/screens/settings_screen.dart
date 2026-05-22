@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../models/challenge_config.dart';
 import '../models/schedule_window.dart';
 import '../services/review_service.dart';
+import '../services/sick_day_service.dart';
 import '../state/screen_trainer_controller.dart';
 import '../utils/strings.dart';
 
@@ -89,7 +90,7 @@ class SettingsScreen extends StatelessWidget {
                     ...controller.profiles.map(
                       (profile) => ListTile(
                         title: Text(profile.name),
-                        subtitle: Text('${profile.challengeConfig.challengeType.name} · ${profile.challengeConfig.targetReps} reps'),
+                        subtitle: Text('${profile.challengeConfig.challengeType.name} · ${profile.challengeConfig.targetReps} reps${controller.settingsRepository.hasPin(profile.id) ? ' · PIN set' : ''}'),
                         selected: controller.activeProfile?.id == profile.id,
                         trailing: Wrap(
                           spacing: 8,
@@ -102,21 +103,47 @@ class SettingsScreen extends StatelessWidget {
                               onPressed: () => controller.removeProfile(profile.id),
                               child: const Text(Strings.removeProfile),
                             ),
-                            if (!profile.isChild) TextButton(
+                            if (!profile.isChild) ...[
+                              TextButton(
+                                onPressed: () async {
+                                  final ctl = TextEditingController();
+                                  final pin = await showDialog<String?>(context: context, builder: (ctx) {
+                                    return AlertDialog(
+                                      title: const Text('Set PIN for profile'),
+                                      content: TextField(controller: ctl, keyboardType: TextInputType.number, obscureText: true),
+                                      actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')), TextButton(onPressed: () => Navigator.of(ctx).pop(ctl.text), child: const Text('Save'))],
+                                    );
+                                  });
+                                  if (pin == null || pin.isEmpty) return;
+                                  await controller.settingsRepository.setPinForProfile(profile.id, pin);
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PIN saved.')));
+                                },
+                                child: const Text('Set PIN'),
+                              ),
+                              if (controller.settingsRepository.hasPin(profile.id)) TextButton(
+                                onPressed: () async {
+                                  final confirm = await showDialog<bool?>(context: context, builder: (ctx) => AlertDialog(title: const Text('Remove PIN'), content: const Text('Remove saved PIN for this profile?'), actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')), TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Remove'))]));
+                                  if (confirm == true) {
+                                    await controller.settingsRepository.removePin(profile.id);
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PIN removed.')));
+                                  }
+                                },
+                                child: const Text('Remove PIN'),
+                              ),
+                            ],
+                            TextButton(
                               onPressed: () async {
-                                final ctl = TextEditingController();
-                                final pin = await showDialog<String?>(context: context, builder: (ctx) {
-                                  return AlertDialog(
-                                    title: const Text('Set PIN for profile'),
-                                    content: TextField(controller: ctl, keyboardType: TextInputType.number, obscureText: true),
-                                    actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')), TextButton(onPressed: () => Navigator.of(ctx).pop(ctl.text), child: const Text('Save'))],
-                                  );
-                                });
-                                if (pin == null || pin.isEmpty) return;
-                                await controller.settingsRepository.setPinForProfile(profile.id, pin);
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PIN saved.')));
+                                final sick = SickDayService();
+                                final ok = await sick.authenticateForSkip();
+                                if (!ok) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Authentication failed.')));
+                                  return;
+                                }
+                                final updated = profile.copyWith(isChild: !profile.isChild);
+                                await controller.updateProfile(updated);
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profile ${updated.isChild ? 'set as child' : 'set as adult'}')));
                               },
-                              child: const Text('Set PIN'),
+                              child: Text(profile.isChild ? 'Mark Adult' : 'Mark Child'),
                             ),
                           ],
                         ),

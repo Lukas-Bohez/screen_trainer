@@ -73,6 +73,11 @@ class SettingsRepository extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool hasPin(String profileId) {
+    final stored = _prefs?.getString('$_pinPrefix$profileId');
+    return stored != null && stored.isNotEmpty;
+  }
+
   bool isStreakFrozen(String profileId) {
     final expiry = _prefs?.getInt('$_streakFreezePrefix$profileId');
     if (expiry == null) return false;
